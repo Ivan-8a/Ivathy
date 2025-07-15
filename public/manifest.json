@@ -1,0 +1,22 @@
+{
+    "name": "Ivathy",
+    "short_name": "Ivathy",
+    "description": "Aplicacion que te recuerda que tu pareja te extraña o ha pensado en ti",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#FFFFFF",
+    "theme_color": "#000000",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
