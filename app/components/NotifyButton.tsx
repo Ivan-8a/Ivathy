@@ -9,7 +9,7 @@ interface NotifyButtonProps {
   partnerName: string;
 }
 
-export default function NotifyButton({ userId, partnerName }: NotifyButtonProps) {
+const NotifyButton = ({ userId, partnerName }: NotifyButtonProps) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [notificationState, setNotificationState] = useState<{
@@ -30,15 +30,6 @@ export default function NotifyButton({ userId, partnerName }: NotifyButtonProps)
       enabled: status === 'granted',
       blocked
     });
-  };
-
-  const enableNotifications = async () => {
-    const permitted = await requestNotificationPermission();
-    if (permitted) {
-      setNotificationState(prev => ({ ...prev, enabled: true }));
-      // Recargar la página para asegurar que todo se registre correctamente
-      window.location.reload();
-    }
   };
 
   const handleNotify = async () => {
@@ -125,3 +116,5 @@ export default function NotifyButton({ userId, partnerName }: NotifyButtonProps)
     </div>
   );
 }
+
+export default NotifyButton;

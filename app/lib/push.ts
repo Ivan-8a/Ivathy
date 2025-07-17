@@ -15,14 +15,29 @@ webpush.setVapidDetails(
 );
 
 // Solo interfaces y tipos
+export interface NotificationData {
+  fromUser: string;
+  timestamp: string;
+  [key: string]: string;
+}
+
 export interface NotificationPayload {
   title: string;
   body: string;
   icon?: string;
   badge?: string;
   tag?: string;
-  data?: any;
+  data?: NotificationData;
 }
+
+// Add this type to handle the conversion
+type WebPushSubscription = {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  }
+};
 
 export class PushService {
   static async sendNotification(
@@ -30,8 +45,17 @@ export class PushService {
     payload: NotificationPayload
   ): Promise<void> {
     try {
+      // Convert browser PushSubscription to WebPush format
+      const webPushSubscription: WebPushSubscription = {
+        endpoint: subscription.endpoint,
+        keys: {
+          p256dh: Buffer.from(subscription.getKey('p256dh') as ArrayBuffer).toString('base64'),
+          auth: Buffer.from(subscription.getKey('auth') as ArrayBuffer).toString('base64')
+        }
+      };
+
       await webpush.sendNotification(
-        subscription,
+        webPushSubscription,
         JSON.stringify(payload)
       );
     } catch (error) {

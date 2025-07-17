@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 interface PairFormProps {
   userId: string;
-  onPaired: (partner: any) => void;
+  onPaired: (partner: { id: string; name: string }) => void;
 }
 
 export default function PairForm({ userId, onPaired }: PairFormProps) {
@@ -98,6 +98,34 @@ export default function PairForm({ userId, onPaired }: PairFormProps) {
     } catch (error) {
       console.error('Pair error:', error);
       alert(error instanceof Error ? error.message : 'Error al emparejar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await fetch('/api/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId, 
+          action: 'join',
+          code: code.toUpperCase() 
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al emparejar');
+      }
+
+      onPaired(data.partner);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }

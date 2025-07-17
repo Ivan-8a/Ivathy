@@ -1,30 +1,36 @@
-import webpush from 'web-push';
-import { NotificationPayload } from './push';
+import webpush, { PushSubscription as WebPushSubscriptionType } from 'web-push';
 
-const vapidKeys = {
-  publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  privateKey: process.env.VAPID_PRIVATE_KEY!
-};
+export interface NotificationData {
+  fromUser: string;
+  timestamp: string;
+  [key: string]: string;
+}
 
-webpush.setVapidDetails(
-  'mailto:your-email@example.com',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+export interface NotificationPayload {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: NotificationData;
+}
 
 export class PushService {
   static async sendNotification(
     subscription: PushSubscription,
     payload: NotificationPayload
   ): Promise<void> {
-    try {
-      await webpush.sendNotification(
-        subscription,
-        JSON.stringify(payload)
-      );
-    } catch (error) {
-      console.error('Error sending push notification:', error);
-      throw error;
-    }
+    const webPushSubscription: WebPushSubscriptionType = {
+      endpoint: subscription.endpoint,
+      keys: {
+        p256dh: Buffer.from(subscription.getKey('p256dh') as ArrayBuffer).toString('base64'),
+        auth: Buffer.from(subscription.getKey('auth') as ArrayBuffer).toString('base64')
+      }
+    };
+
+    await webpush.sendNotification(
+      webPushSubscription,
+      JSON.stringify(payload)
+    );
   }
 }

@@ -1,7 +1,7 @@
 // app/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AuthForm from './components/AuthForm';
 import PairForm from './components/PairForm';
 import NotifyButton from './components/NotifyButton';
@@ -24,55 +24,7 @@ export default function Home() {
   const [partner, setPartner] = useState<Partner | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Cargar usuario desde localStorage
-    const savedUser = localStorage.getItem('ivathy_user');
-    if (savedUser) {
-      const userData = JSON.parse(savedUser);
-      setUser(userData);
-      
-      // Si tiene pareja, cargar datos de la pareja
-      if (userData.partnerId) {
-        const savedPartner = localStorage.getItem('ivathy_partner');
-        if (savedPartner) {
-          setPartner(JSON.parse(savedPartner));
-        }
-      }
-    }
-    
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (user && !user.partnerId) {
-      // Registrar service worker y suscribirse a notificaciones
-      registerServiceWorker();
-    }
-  }, [user]);
-
-  const registerServiceWorker = async () => {
-    if (!('serviceWorker' in navigator)) {
-      alert('Tu navegador no soporta notificaciones push');
-      return;
-    }
-
-    try {
-      // No necesitamos solicitar permiso aquí ya que lo hacemos antes
-      const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered:', registration);
-      
-      const subscription = await subscribeUser();
-      if (subscription && user) {
-        await saveSubscription(subscription);
-        console.log('Notificaciones activadas correctamente');
-      }
-    } catch (error) {
-      console.error('Error al registrar notificaciones:', error);
-      alert('Error al activar las notificaciones. Por favor, intenta de nuevo.');
-    }
-  };
-
-  const saveSubscription = async (subscription: PushSubscription) => {
+  const saveSubscription = useCallback(async (subscription: PushSubscription) => {
     try {
       await fetch('/api/subscribe', {
         method: 'POST',
@@ -85,7 +37,34 @@ export default function Home() {
     } catch (error) {
       console.error('Error saving subscription:', error);
     }
-  };
+  }, [user?.id]);
+
+  const registerServiceWorker = useCallback(async () => {
+    if (!('serviceWorker' in navigator)) {
+      alert('Tu navegador no soporta notificaciones push');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service Worker registered:', registration);
+      
+      const subscription = await subscribeUser();
+      if (subscription && user) {
+        await saveSubscription(subscription);
+        console.log('Notificaciones activadas correctamente');
+      }
+    } catch (error) {
+      console.error('Error al registrar notificaciones:', error);
+      alert('Error al activar las notificaciones. Por favor, intenta de nuevo.');
+    }
+  }, [user, saveSubscription]);
+
+  useEffect(() => {
+    if (user && !user.partnerId) {
+      registerServiceWorker();
+    }
+  }, [user, registerServiceWorker]);
 
   const handleAuth = (userData: User) => {
     setUser(userData);
@@ -109,6 +88,25 @@ export default function Home() {
       alert('Para recibir notificaciones de tu pareja, necesitas permitir las notificaciones.');
     }
   };
+
+  useEffect(() => {
+    // Cargar usuario desde localStorage
+    const savedUser = localStorage.getItem('ivathy_user');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      
+      // Si tiene pareja, cargar datos de la pareja
+      if (userData.partnerId) {
+        const savedPartner = localStorage.getItem('ivathy_partner');
+        if (savedPartner) {
+          setPartner(JSON.parse(savedPartner));
+        }
+      }
+    }
+    
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
