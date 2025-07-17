@@ -9,12 +9,12 @@
     "scope": "/",
     "icons": [
         {
-            "src": "/icons/ivathyicon.png",
+            "src": "/icons/ivathyicon192.png",
             "sizes": "192x192",
             "type": "image/png"
         },
         {
-            "src": "/icons/ivathyicon.png",
+            "src": "/icons/ivathyicon512.png",
             "sizes": "512x512",
             "type": "image/png"
         }
