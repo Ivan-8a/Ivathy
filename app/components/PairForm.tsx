@@ -28,6 +28,9 @@ export default function PairForm({ userId, onPaired }: PairFormProps) {
       if (response.ok) {
         setGeneratedCode(data.pairCode);
         setMessage(data.message);
+
+        // Iniciar polling para verificar si alguien se unió
+        startPolling(data.pairCode);
       } else {
         alert(data.error);
       }
@@ -36,6 +39,33 @@ export default function PairForm({ userId, onPaired }: PairFormProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const startPolling = (pairCode: string) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch('/api/pair/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, code: pairCode })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.partner) {
+          clearInterval(pollInterval);
+          onPaired(data.partner);
+        }
+      } catch (error) {
+        console.error('Error polling:', error);
+      }
+    }, 2000); // Revisar cada 2 segundos
+
+    // Limpiar el intervalo después de 5 minutos
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      setMessage('El código ha expirado. Por favor, genera uno nuevo.');
+      setGeneratedCode('');
+    }, 5 * 60 * 1000);
   };
 
   const handleJoin = async (e: React.FormEvent) => {

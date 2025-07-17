@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     await PushService.sendNotification(partner.pushSubscription, {
       title: '💕 Ivathy',
       body: `${user.name} está pensando en ti`,
-      icon: '/icons/icon-192x192.png',
+      icon: '/icons/notificacion1.png',
       data: {
         fromUser: user.name,
         timestamp: new Date().toISOString()
